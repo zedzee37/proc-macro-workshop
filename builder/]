@@ -8,7 +8,6 @@ use syn::{
     Fields,
     Type,
     PathArguments,
-    GenericArgument
 };
 use quote::{quote};
 
@@ -35,13 +34,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     fields.iter().for_each(|field| {
         let field_name = &field.ident;
-        let mut field_ty = &field.ty;
+        let field_ty = &field.ty;
 
         let optional_type = get_optional_type(field_ty);
-
-        if optional_type.is_some() {
-            field_ty = optional_type.unwrap();
-        }
 
         field_inits.push(quote! {
             #field_name: None,
@@ -58,15 +53,9 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
         });
 
-        if optional_type.is_none() {
-            build_decls.push(quote! {
-                #field_name: self.#field_name.take().ok_or(#err_name)?,
-            });
-        } else {
-            build_decls.push(quote! {
-                #field_name: self.#field_name.take(),
-            });
-        }
+        build_decls.push(quote! {
+            #field_name: self.#field_name.take().ok_or(#err_name)?,
+        });
     });
 
     let field_inits = field_inits.iter();
@@ -125,7 +114,7 @@ fn get_optional_type(ty: &Type) -> Option<&Type> {
 
     let first_seg = &segments[0];
 
-    let optional_ident = Ident::new("Option", proc_macro2::Span::call_site());
+    let optional_ident = Ident::new("Optional", proc_macro2::Span::call_site());
     if !optional_ident.eq(&first_seg.ident) {
         return None;
     }
@@ -145,8 +134,8 @@ fn get_optional_type(ty: &Type) -> Option<&Type> {
 
     let first_angled_arg = &angled_args[0];
 
-    return match first_angled_arg {
-        GenericArgument::Type(t) => Some(t),
-        _ => return None,
+    let type = match first_angled_arg {
     };
+
+    return first_angled;
 }
